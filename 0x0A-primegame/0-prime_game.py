@@ -1,69 +1,74 @@
 #!/usr/bin/python3
-"""Module containing a primegame function"""
+"""Prime Game Module"""
 
 
-def set_round_numbers(n):
-    round = []
-    for x in range(1, n + 1):
-        round.append(x)
-    return round
+def isWinner(rounds, numbers):
+    """
+    Determines the overall winner of a prime number selection game.
 
-
-def remove_factors(sel, round_numbers):
-    next_round = []
-    for num in round_numbers:
-        if num % sel != 0:
-            next_round.append(num)
-
-    return next_round
-
-
-def isWinner(x, nums):
-    """Function to handle rounds of a prime game between 2 players
     Args:
-        x - The number of rounds to be played
-        nums - An array of n numbers to be used in each round
+        rounds (int): Number of game rounds to be played.
+        numbers (list of int): List where each value represents the range
+        of numbers from 1 to n in each round.
 
-    Return:
-        The name of the player that won the most rounds
-        """
-
-    # Monitor the points of each player
-    player = {"Maria": 0, 'Ben': 0}
-    # Set a check foreach player
-    check_player = 0
-
-    # Iterate over the passed no of rounds in the game
-    for n in range(0, x):
-        # Create a list of numbers for this round
-        round_numbers = set_round_numbers(nums[n])
-
-        # Start the round
-        while (round_numbers):
-            # If there is only one option left in the game, end it
-            if len(round_numbers) == 1:
-                break
-
-            next = round_numbers[1]
-            # Remove all the factors of the next number
-            round_numbers = remove_factors(next, round_numbers)
-
-            # Move to the next player
-            if check_player == 0:
-                check_player = 1
-            else:
-                check_player = 0
-
-        # Check the winner of the last round and score them
-        if check_player == 0:
-            player['Maria'] += 1
-            check_player = 1
-        else:
-            player['Ben'] += 1
-            check_player = 0
-
-    # If Maria and ben have equal poins, then there is no winner
-    if player['Maria'] == player['Ben']:
+    Returns:
+        str: The name of the player with the most victories ("Ben" or "Maria").
+        If it's a tie or no winner can be determined, returns None.
+    """
+    # Validate input
+    if rounds <= 0 or not numbers:
         return None
-    # Else return the player with the most points
-    return 'Maria' if player['Maria'] > player['Ben'] else 'Ben'
+    if rounds != len(numbers):
+        return None
+
+    # Track scores for each player
+    ben_score = 0
+    maria_score = 0
+
+    # Array to store prime number indicators, based on the maximum number
+    max_number = max(numbers)
+    prime_array = [1] * (max_number + 1)
+
+    # Mark non-prime numbers (0 and 1) explicitly
+    prime_array[0], prime_array[1] = 0, 0
+
+    # Use Sieve of Eratosthenes to mark non-prime numbers in the array
+    for i in range(2, len(prime_array)):
+        mark_non_primes(prime_array, i)
+
+    # Iterate through each round and tally wins for each player
+    for num in numbers:
+        if sum(prime_array[:num + 1]) % 2 == 0:
+            ben_score += 1  # Ben wins if prime count is even
+        else:
+            maria_score += 1  # Maria wins if prime count is odd
+
+    # Determine the overall winner
+    if ben_score > maria_score:
+        return "Ben"
+    if maria_score > ben_score:
+        return "Maria"
+    return None
+
+
+def mark_non_primes(array, num):
+    """
+    Marks multiples of a prime number as non-prime in the given list.
+
+    Args:
+        array (list of int): Array where prime numbers are marked with 1.
+        num (int): Prime number for which multiples are to be marked.
+
+    Returns:
+        None.
+    """
+    # Mark multiples of 'num' as non-prime (set to 0)
+    for i in range(2, len(array)):
+        try:
+            array[i * num] = 0
+        except (ValueError, IndexError):
+            break  # Stop if index goes out of bounds
+
+
+if __name__ == "__main__":
+    print("Winner: {}".format(determine_winner(5, [2, 5, 1, 4, 3])))
